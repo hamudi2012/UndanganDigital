@@ -17,6 +17,7 @@
         .btn-publish { background: var(--gold); color: #000; font-weight: 800; width: 100%; padding: 15px; border: none; border-radius: 8px; text-transform: uppercase; letter-spacing: 2px; }
         .label-custom { display: block; color: var(--gold); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; text-align: center; letter-spacing: 2px; }
         #status-log { font-size: 0.7rem; text-align: center; margin-top: 10px; color: #888; }
+        .info-badge { background: #222; color: var(--gold); padding: 5px 10px; border-radius: 5px; font-size: 0.7rem; margin-bottom: 15px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -26,15 +27,13 @@
     <p style="color:#444; letter-spacing: 4px; font-size: 0.6rem; margin-top: -5px;">DIGITAL ARCHITECT GITHUB</p>
 </div>
 
-<div class="editor-box">
-    <div class="text-center mb-3">
-        <span class="badge bg-dark text-warning">REPO: hamudi2012/UndanganDigital</span>
-    </div>
+<div class="editor-box text-center">
+    <div class="info-badge">CONNECTED: hamudi2012/UndanganDigital</div>
 
     <label class="label-custom">Project Title</label>
-    <input type="text" id="judul" class="form-control-dark" placeholder="Contoh: wedding-mega">
+    <input type="text" id="judul" class="form-control-dark" placeholder="Contoh: wedding-hamudi">
     
-    <label class="label-custom">Source Code (HTML)</label>
+    <label class="label-custom">Source Code (HTML/PHP)</label>
     <textarea id="content" class="form-control-dark" placeholder="Paste kodingan template lo disini..."></textarea>
     
     <button class="btn-publish" id="btnExec" onclick="executeBuild()">Execute & Publish</button>
@@ -42,9 +41,9 @@
 </div>
 
 <script>
-    // --- KONFIGURASI HARDCODE (GANTI TOKEN LO DISINI SEKALI SEUMUR HIDUP) ---
-    const MY_TOKEN = "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"; 
-    const MY_REPO  = "hamudi2012/UndanganDigital";
+    // --- SETTINGAN PERMANEN (GANTI SEKALI AJA) ---
+    const MY_TOKEN = "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"; // Isi token ghp_... lo di sini
+    const MY_REPO  = "hamudi2012/UndanganDigital"; // Repo lo
 
     async function executeBuild() {
         const title = document.getElementById('judul').value.trim();
@@ -52,27 +51,26 @@
         const log = document.getElementById('status-log');
         const btn = document.getElementById('btnExec');
 
-        if(!MY_TOKEN || MY_TOKEN.includes("MASUKKAN")) return alert("Token belum lo isi di dalam kode, Bro!");
-        if(!title || !source) return alert("Isi Judul & Kodingan dulu!");
+        if(MY_TOKEN === "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") return alert("Isi dulu token lo di baris kodingan MY_TOKEN!");
+        if(!title || !source) return alert("Isi Judul & Kodingan dulu, Bro!");
 
         btn.disabled = true;
-        log.innerText = "Processing...";
+        log.innerText = "Memproses...";
         
         const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         const projectID = slug + "-" + Math.floor(Date.now() / 1000);
         
-        // --- INJEKSI OTOMATIS KE TEMPLATE ---
-        // Mencari variabel dummy dan menggantinya dengan data asli
+        // --- INJEKSI OTOMATIS DATA KE TEMPLATE ---
         source = source.replace('const PROJECT_ID = "DEFAULT";', `const PROJECT_ID = "${projectID}";`);
         source = source.replace('const USER_REPO = "USERNAME_LU/REPO_LU";', `const USER_REPO = "${MY_REPO}";`);
         source = source.replace('const TOKEN_GH = "ghp_TOKEN_LU";', `const TOKEN_GH = "${MY_TOKEN}";`);
 
-        log.innerText = "Pushing to GitHub...";
-        const fileName = `skrip/${slug}.html`;
+        log.innerText = "Mengirim ke GitHub...";
+        const fileName = `skrip/${slug}.html`; // File akan masuk ke folder skrip/
         const apiUrl = `https://api.github.com/repos/${MY_REPO}/contents/${fileName}`;
 
         try {
-            // Cek SHA (biar bisa nimpa file lama kalau judulnya sama)
+            // Cek SHA (biar bisa update file lama)
             let sha = "";
             const check = await fetch(apiUrl, { headers: { 'Authorization': `token ${MY_TOKEN}` } });
             if(check.ok) { const d = await check.json(); sha = d.sha; }
@@ -88,12 +86,12 @@
             });
 
             if(res.ok) {
-                log.innerText = "JOSS! Undangan Live.";
+                log.innerText = "SUKSES! Undangan Live.";
                 alert("BERHASIL!\nLink: https://hamudi2012.github.io/UndanganDigital/" + fileName);
             } else {
                 const err = await res.json();
-                alert("Gagal: " + err.message);
-                log.innerText = "Gagal Push.";
+                alert("Gagal: " + err.message); // Akan muncul 'Bad credentials' kalau token salah
+                log.innerText = "Gagal. Cek Token!";
             }
         } catch(e) {
             alert("Error: " + e.message);
