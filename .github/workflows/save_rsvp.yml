@@ -1,0 +1,36 @@
+name: Save RSVP Per Project
+on:
+  repository_dispatch:
+    types: [simpan-ucapan]
+
+jobs:
+  update-json:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Process RSVP
+        run: |
+          # Ambil ID Project dari kiriman web
+          PROJECT_ID="${{ github.event.client_payload.project_id }}"
+          FILE_PATH="database/ucapan-${PROJECT_ID}.json"
+          
+          # Buat folder database kalau belum ada
+          mkdir -p database
+          
+          # Kalau file belum ada, inisialisasi dengan array kosong []
+          if [ ! -f "$FILE_PATH" ]; then
+            echo "[]" > "$FILE_PATH"
+          fi
+          
+          # Masukkan data baru ke dalam file JSON yang spesifik buat project itu
+          jq ". += [${{ toJson(github.event.client_payload.data) }}]" "$FILE_PATH" > temp.json && mv temp.json "$FILE_PATH"
+          
+      - name: Commit & Push
+        run: |
+          git config --global user.name "RSVP-Bot"
+          git config --global user.email "bot@github.com"
+          git add database/
+          git commit -m "RSVP baru untuk project: ${{ github.event.client_payload.project_id }}"
+          git push
+          
