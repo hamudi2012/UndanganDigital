@@ -3,101 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Studio Digital Architect - GitHub Edition</title>
+    <title>Studio Architect - UndanganDigital</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #d4af37; --dark-bg: #0a0a0a; --panel: #161616; }
-        body { background-color: var(--dark-bg); font-family: 'Montserrat', sans-serif; color: #fff; padding: 20px 10px; }
+        body { background-color: var(--dark-bg); font-family: 'Montserrat', sans-serif; color: #fff; padding: 15px; }
         .brand-header { text-align: center; margin-bottom: 20px; }
-        .brand-header h2 { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: var(--gold); margin: 0; }
-        .nav-custom { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
-        .btn-nav { border: 1px solid var(--gold); color: var(--gold); padding: 5px 15px; font-size: 0.7rem; text-transform: uppercase; text-decoration: none; border-radius: 5px; }
+        .brand-header h2 { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--gold); margin: 0; }
         .editor-box { background: var(--panel); padding: 20px; border-radius: 15px; border: 1px solid #222; }
-        .form-control-dark { background: #000; border: 1px solid #333; color: #fff; margin-bottom: 15px; padding: 12px; font-size: 0.9rem; width: 100%; border-radius: 8px; }
-        textarea { min-height: 350px; font-family: monospace; text-align: left !important; border-left: 3px solid var(--gold) !important; }
-        .btn-publish { background: var(--gold); color: #000; font-weight: 700; width: 100%; padding: 15px; border: none; border-radius: 8px; text-transform: uppercase; letter-spacing: 2px; }
-        #log { font-size: 0.7rem; text-align: center; margin-top: 10px; color: #888; }
+        .form-control-dark { background: #000; border: 1px solid #333; color: #fff; margin-bottom: 12px; padding: 12px; font-size: 0.85rem; width: 100%; border-radius: 8px; }
+        textarea { min-height: 300px; font-family: 'Consolas', monospace; font-size: 11px !important; border-left: 3px solid var(--gold) !important; text-align: left !important; }
+        .btn-publish { background: var(--gold); color: #000; font-weight: 800; width: 100%; padding: 15px; border: none; border-radius: 8px; text-transform: uppercase; letter-spacing: 2px; }
+        .label-custom { display: block; color: var(--gold); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; text-align: center; letter-spacing: 2px; }
+        #status-log { font-size: 0.7rem; text-align: center; margin-top: 10px; color: #888; }
     </style>
 </head>
 <body>
 
 <div class="brand-header">
     <h2>Studio</h2>
-    <p style="color:#555; letter-spacing: 3px; font-size: 0.6rem;">DIGITAL ARCHITECT GITHUB</p>
+    <p style="color:#444; letter-spacing: 4px; font-size: 0.6rem; margin-top: -5px;">DIGITAL ARCHITECT GITHUB</p>
 </div>
 
-<div class="nav-custom">
-    <a href="#" class="btn-nav" onclick="showTab('builder')">Editor</a>
-    <a href="#" class="btn-nav" onclick="showTab('assets')">Assets</a>
-</div>
-
-<div id="tab-builder" class="tab-content">
-    <div class="editor-box">
-        <input type="password" id="gh-token" class="form-control-dark" placeholder="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">
-        <input type="text" id="gh-repo" class="form-control-dark" placeholder="hamudi2012/UndanganDigital">
-        <input type="text" id="judul" class="form-control-dark" placeholder="NAMA PROJECT (MISAL: wedding-wawa)">
-        <textarea id="content" class="form-control-dark" placeholder="PASTE KODINGAN UNDANGAN DISINI..."></textarea>
-        <button class="btn-publish" onclick="executePublish()">Execute & Publish</button>
-        <div id="log">Ready to deploy...</div>
-    </div>
-</div>
-
-<div id="tab-assets" class="tab-content" style="display:none;">
-    <div class="editor-box text-center">
-        <p style="font-size: 0.8rem; color: var(--gold);">Gunakan GitHub Desktop atau Web Upload untuk menambah gambar ke folder /uploads/ lalu copy link-nya di sini.</p>
-        <div id="asset-list"></div>
-    </div>
+<div class="editor-box">
+    <label class="label-custom">Akses Kontrol GitHub</label>
+    <input type="password" id="gh-token" class="form-control-dark" placeholder="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">
+    <input type="text" id="gh-repo" class="form-control-dark" value="hamudi2012/UndanganDigital" readonly>
+    
+    <label class="label-custom">Project Title</label>
+    <input type="text" id="judul" class="form-control-dark" placeholder="Misal: wedding-mega">
+    
+    <label class="label-custom">Source Code (HTML)</label>
+    <textarea id="content" class="form-control-dark" placeholder="Paste kodingan template lo disini..."></textarea>
+    
+    <button class="btn-publish" onclick="executeBuild()">Execute & Publish</button>
+    <div id="status-log">Status: Standby</div>
 </div>
 
 <script>
-    function showTab(t) {
-        document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-        document.getElementById('tab-' + t).style.display = 'block';
-    }
-
-    async function executePublish() {
+    async function executeBuild() {
         const token = document.getElementById('gh-token').value;
         const repo = document.getElementById('gh-repo').value;
         const title = document.getElementById('judul').value;
-        let content = document.getElementById('content').value;
-        const log = document.getElementById('log');
+        let source = document.getElementById('content').value;
+        const log = document.getElementById('status-log');
 
-        if(!token || !repo || !title) return alert("Data belum lengkap!");
+        if(!token || !title || !source) return alert("Lengkapi data Bos!");
 
-        log.innerText = "Injecting Project ID...";
-        const projectID = title.toLowerCase().replace(/ /g, "-") + "-" + Date.now();
+        log.innerText = "Processing Logic...";
+        const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const projectID = slug + "-" + Math.floor(Date.now() / 1000);
         
-        // OTOMATIS GANTI PROJECT_ID DI DALAM KODINGAN
-        content = content.replace('const PROJECT_ID = "DEFAULT";', `const PROJECT_ID = "${projectID}";`);
+        // --- INJEKSI OTOMATIS KE TEMPLATE ---
+        source = source.replace('const PROJECT_ID = "DEFAULT";', `const PROJECT_ID = "${projectID}";`);
+        source = source.replace('const USER_REPO = "USERNAME_LU/REPO_LU";', `const USER_REPO = "${repo}";`);
+        source = source.replace('const TOKEN_GH = "ghp_TOKEN_LU";', `const TOKEN_GH = "${token}";`);
 
-        log.innerText = "Pushing to GitHub...";
-        const fileName = `undangan/${title}.html`;
-        const url = `https://api.github.com/repos/${repo}/contents/${fileName}`;
+        log.innerText = "Pushing to GitHub UndanganDigital...";
+        const fileName = `skrip/${slug}.html`;
+        const apiUrl = `https://api.github.com/repos/${repo}/contents/${fileName}`;
 
         try {
-            // Cek SHA jika file sudah ada
             let sha = "";
-            const check = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
+            const check = await fetch(apiUrl, { headers: { 'Authorization': `token ${token}` } });
             if(check.ok) { const d = await check.json(); sha = d.sha; }
 
-            const res = await fetch(url, {
+            const res = await fetch(apiUrl, {
                 method: 'PUT',
                 headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    message: `Build project: ${title}`,
-                    content: btoa(unescape(encodeURIComponent(content))),
+                    message: `Build: ${title}`,
+                    content: btoa(unescape(encodeURIComponent(source))),
                     sha: sha
                 })
             });
 
             if(res.ok) {
-                alert("JOSS! Undangan Berhasil Live.");
-                log.innerText = "Selesai! Cek folder /undangan/ di repo lo.";
+                log.innerText = "JOSS! Undangan Live.";
+                alert("Berhasil! Link: https://hamudi2012.github.io/UndanganDigital/" + fileName);
+            } else {
+                log.innerText = "Gagal! Cek Token.";
             }
         } catch(e) { log.innerText = "Error: " + e.message; }
     }
 </script>
 </body>
-            </html>
-    
+</html>
