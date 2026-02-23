@@ -3,81 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Studio Architect - UndanganDigital</title>
+    <title>Studio Architect - Secure Builder</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #d4af37; --dark-bg: #0a0a0a; --panel: #161616; }
-        body { background-color: var(--dark-bg); font-family: 'Montserrat', sans-serif; color: #fff; padding: 15px; }
-        .brand-header { text-align: center; margin-bottom: 20px; }
-        .brand-header h2 { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--gold); margin: 0; }
-        .editor-box { background: var(--panel); padding: 20px; border-radius: 15px; border: 1px solid #222; }
-        .form-control-dark { background: #000; border: 1px solid #333; color: #fff; margin-bottom: 12px; padding: 12px; font-size: 0.85rem; width: 100%; border-radius: 8px; }
-        textarea { min-height: 350px; font-family: 'Consolas', monospace; font-size: 11px !important; border-left: 3px solid var(--gold) !important; text-align: left !important; }
-        .btn-publish { background: var(--gold); color: #000; font-weight: 800; width: 100%; padding: 15px; border: none; border-radius: 8px; text-transform: uppercase; letter-spacing: 2px; }
-        .label-custom { display: block; color: var(--gold); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; text-align: center; letter-spacing: 2px; }
-        #status-log { font-size: 0.7rem; text-align: center; margin-top: 10px; color: #888; }
-        .info-badge { background: #222; color: var(--gold); padding: 5px 10px; border-radius: 5px; font-size: 0.7rem; margin-bottom: 15px; display: inline-block; }
+        body { background-color: var(--dark-bg); font-family: sans-serif; color: #fff; padding: 15px; }
+        .editor-box { background: var(--panel); padding: 20px; border-radius: 15px; border: 1px solid #222; text-align: center; }
+        .form-control-dark { background: #000; border: 1px solid #333; color: #fff; margin-bottom: 12px; padding: 12px; width: 100%; border-radius: 8px; }
+        textarea { min-height: 350px; font-family: monospace; font-size: 11px; border-left: 3px solid var(--gold); }
+        .btn-publish { background: var(--gold); color: #000; font-weight: 800; width: 100%; padding: 15px; border: none; border-radius: 8px; text-transform: uppercase; }
+        .status-msg { font-size: 0.7rem; color: #888; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div class="brand-header">
-    <h2>Studio</h2>
-    <p style="color:#444; letter-spacing: 4px; font-size: 0.6rem; margin-top: -5px;">DIGITAL ARCHITECT GITHUB</p>
-</div>
+<div class="editor-box">
+    <h2 style="color:var(--gold)">STUDIO BUILDER</h2>
+    <p style="font-size:0.7rem">REPO: hamudi2012/UndanganDigital</p>
 
-<div class="editor-box text-center">
-    <div class="info-badge">CONNECTED: hamudi2012/UndanganDigital</div>
+    <button onclick="setToken()" class="btn btn-sm btn-outline-secondary mb-3" style="font-size:0.6rem">⚙️ SET/GANTI TOKEN</button>
 
-    <label class="label-custom">Project Title</label>
-    <input type="text" id="judul" class="form-control-dark" placeholder="Contoh: wedding-hamudi">
-    
-    <label class="label-custom">Source Code (HTML/PHP)</label>
-    <textarea id="content" class="form-control-dark" placeholder="Paste kodingan template lo disini..."></textarea>
+    <input type="text" id="judul" class="form-control-dark" placeholder="Judul Project (Contoh: wedding-mega)">
+    <textarea id="content" class="form-control-dark" placeholder="Paste HTML Undangan..."></textarea>
     
     <button class="btn-publish" id="btnExec" onclick="executeBuild()">Execute & Publish</button>
-    <div id="status-log">Status: Menunggu Perintah...</div>
+    <div id="status-log" class="status-msg">Siap bekerja...</div>
 </div>
 
 <script>
-    // --- SETTINGAN PERMANEN (GANTI SEKALI AJA) ---
-    const MY_TOKEN = "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"; // Isi token ghp_... lo di sini
-    const MY_REPO  = "hamudi2012/UndanganDigital"; // Repo lo
+    const MY_REPO = "hamudi2012/UndanganDigital";
+
+    // Fungsi buat simpan token ke memori HP lo doang
+    function setToken() {
+        const t = prompt("Masukkan Token ghp_ lo:");
+        if(t) {
+            localStorage.setItem('gh_token_privat', t.trim());
+            alert("Token tersimpan aman di HP lo!");
+        }
+    }
 
     async function executeBuild() {
+        const token = localStorage.getItem('gh_token_privat');
         const title = document.getElementById('judul').value.trim();
         let source = document.getElementById('content').value;
         const log = document.getElementById('status-log');
-        const btn = document.getElementById('btnExec');
 
-        if(MY_TOKEN === "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") return alert("Isi dulu token lo di baris kodingan MY_TOKEN!");
-        if(!title || !source) return alert("Isi Judul & Kodingan dulu, Bro!");
+        if(!token) return alert("Klik tombol SET TOKEN dulu, Bro!");
+        if(!title || !source) return alert("Judul & Kodingan harus diisi!");
 
-        btn.disabled = true;
-        log.innerText = "Memproses...";
-        
+        log.innerText = "Processing...";
         const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        const projectID = slug + "-" + Math.floor(Date.now() / 1000);
-        
-        // --- INJEKSI OTOMATIS DATA KE TEMPLATE ---
-        source = source.replace('const PROJECT_ID = "DEFAULT";', `const PROJECT_ID = "${projectID}";`);
-        source = source.replace('const USER_REPO = "USERNAME_LU/REPO_LU";', `const USER_REPO = "${MY_REPO}";`);
-        source = source.replace('const TOKEN_GH = "ghp_TOKEN_LU";', `const TOKEN_GH = "${MY_TOKEN}";`);
-
-        log.innerText = "Mengirim ke GitHub...";
-        const fileName = `skrip/${slug}.html`; // File akan masuk ke folder skrip/
+        const fileName = `skrip/${slug}.html`;
         const apiUrl = `https://api.github.com/repos/${MY_REPO}/contents/${fileName}`;
 
         try {
-            // Cek SHA (biar bisa update file lama)
             let sha = "";
-            const check = await fetch(apiUrl, { headers: { 'Authorization': `token ${MY_TOKEN}` } });
+            const check = await fetch(apiUrl, { headers: { 'Authorization': `token ${token}` } });
             if(check.ok) { const d = await check.json(); sha = d.sha; }
 
             const res = await fetch(apiUrl, {
                 method: 'PUT',
-                headers: { 'Authorization': `token ${MY_TOKEN}`, 'Content-Type': 'application/json' },
+                headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: `Build: ${title}`,
                     content: btoa(unescape(encodeURIComponent(source))),
@@ -86,18 +72,14 @@
             });
 
             if(res.ok) {
-                log.innerText = "SUKSES! Undangan Live.";
-                alert("BERHASIL!\nLink: https://hamudi2012.github.io/UndanganDigital/" + fileName);
+                alert("JOSS! Link Live:\nhttps://hamudi2012.github.io/UndanganDigital/" + fileName);
+                log.innerText = "Sukses!";
             } else {
                 const err = await res.json();
-                alert("Gagal: " + err.message); // Akan muncul 'Bad credentials' kalau token salah
-                log.innerText = "Gagal. Cek Token!";
+                alert("Gagal: " + err.message);
+                if(err.message === "Bad credentials") alert("Token lo hangus! Klik SET TOKEN lagi pke yg baru.");
             }
-        } catch(e) {
-            alert("Error: " + e.message);
-        } finally {
-            btn.disabled = false;
-        }
+        } catch(e) { alert("Error: " + e.message); }
     }
 </script>
 </body>
