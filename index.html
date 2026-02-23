@@ -3,46 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Studio Architect Ultra</title>
+    <title>Studio Ultra Max + Preview</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <style>
         :root { --gold: #d4af37; --dark-bg: #0a0a0a; --panel: #161616; }
         body { background-color: var(--dark-bg); font-family: sans-serif; color: #fff; padding: 10px; margin: 0; }
-        .nav-custom { display: flex; justify-content: center; gap: 5px; margin: 15px 0; }
-        .btn-nav { background: none; border: 1px solid #333; color: #888; padding: 8px 12px; border-radius: 5px; font-size: 0.7rem; text-transform: uppercase; }
+        .nav-custom { display: flex; justify-content: center; gap: 5px; margin-bottom: 15px; position: sticky; top: 0; z-index: 100; background: var(--dark-bg); padding: 5px 0; }
+        .btn-nav { background: none; border: 1px solid #333; color: #888; padding: 8px 10px; border-radius: 5px; font-size: 0.7rem; text-transform: uppercase; flex: 1; }
         .btn-nav.active { border-color: var(--gold); color: var(--gold); background: rgba(212, 175, 55, 0.1); }
         .editor-box { background: var(--panel); padding: 15px; border-radius: 12px; border: 1px solid #222; margin-bottom: 80px; }
         .form-control-dark { background: #000; border: 1px solid #333; color: #fff; margin-bottom: 12px; padding: 10px; width: 100%; border-radius: 6px; font-size: 0.8rem; }
         textarea { min-height: 300px; font-family: monospace; font-size: 11px; border-left: 3px solid var(--gold) !important; }
         .btn-gold { background: var(--gold); color: #000; font-weight: 800; width: 100%; padding: 12px; border: none; border-radius: 6px; text-transform: uppercase; font-size: 0.8rem; }
         
-        /* FILE MANAGER STYLE */
-        .file-card { background: #000; border: 1px solid #222; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
-        .file-info { font-size: 0.7rem; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .file-actions { display: flex; gap: 5px; }
-        .btn-act { flex: 1; font-size: 0.6rem; padding: 5px; border-radius: 4px; border: none; font-weight: bold; text-transform: uppercase; }
-        .btn-view { background: #28a745; color: #fff; }
+        /* FILE CARD DENGAN THUMBNAIL */
+        .file-card { background: #000; border: 1px solid #222; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+        .thumb-preview { width: 50px; height: 50px; border-radius: 4px; object-fit: cover; background: #111; border: 1px solid #333; flex-shrink: 0; }
+        .file-content { flex-grow: 1; overflow: hidden; }
+        .file-info { font-size: 0.7rem; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #ccc; }
+        .file-actions { display: flex; gap: 4px; }
+        .btn-act { flex: 1; font-size: 0.55rem; padding: 4px; border-radius: 3px; border: none; font-weight: bold; text-transform: uppercase; }
+        .btn-view { background: #007bff; color: #fff; }
         .btn-del { background: #dc3545; color: #fff; }
         .btn-cp { background: var(--gold); color: #000; }
         
         .hidden { display: none; }
-        #status-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #000; padding: 5px; font-size: 0.6rem; text-align: center; border-top: 1px solid #222; color: var(--gold); }
+        #status-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #000; padding: 5px; font-size: 0.6rem; text-align: center; border-top: 1px solid #222; color: var(--gold); z-index: 1001; }
     </style>
 </head>
 <body>
 
 <div class="text-center mt-3">
     <h3 style="color:var(--gold); font-weight: 800; margin:0;">STUDIO</h3>
-    <p style="font-size:0.5rem; letter-spacing: 3px; color:#555;">ULTRA MANAGER</p>
+    <p style="font-size:0.5rem; letter-spacing: 3px; color:#555;">PREVIEW EDITION</p>
 </div>
 
 <div class="nav-custom">
-    <button onclick="switchTab('build')" id="tab-build" class="btn-nav active">Builder</button>
+    <button onclick="switchTab('build')" id="tab-build" class="btn-nav">Builder</button>
     <button onclick="switchTab('assets')" id="tab-assets" class="btn-nav">Assets</button>
     <button onclick="switchTab('archive')" id="tab-archive" class="btn-nav">Archive</button>
 </div>
 
-<div id="sec-build" class="tab-sec">
+<div id="sec-build" class="tab-sec hidden">
     <div class="editor-box">
         <button onclick="configToken()" class="btn btn-sm btn-dark w-100 mb-3" style="font-size:0.6rem; border:1px solid #333">⚙️ CONFIG TOKEN</button>
         <input type="text" id="judul" class="form-control-dark" placeholder="Project Name">
@@ -70,7 +72,13 @@
 <script>
     const REPO = "hamudi2012/UndanganDigital";
 
+    window.onload = function() {
+        const lastTab = localStorage.getItem('last_tab') || 'build';
+        switchTab(lastTab);
+    };
+
     function switchTab(t) {
+        localStorage.setItem('last_tab', t);
         document.querySelectorAll('.tab-sec').forEach(s => s.classList.add('hidden'));
         document.querySelectorAll('.btn-nav').forEach(b => b.classList.remove('active'));
         document.getElementById('sec-' + t).classList.remove('hidden');
@@ -78,36 +86,52 @@
         if(t !== 'build') refreshList(t === 'assets' ? 'uploads' : 'skrip');
     }
 
-    function configToken() {
-        const t = prompt("Masukkan Token ghp_:");
-        if(t) { localStorage.setItem('_gh_tkn_u', t.trim()); alert("OK!"); }
-    }
-
-    async function pushToGH(path, content, isB64 = false) {
+    async function refreshList(folder) {
         const tkn = localStorage.getItem('_gh_tkn_u');
-        if(!tkn) return alert("Set Token Dulu!");
-        updateStatus("Processing...");
-        const url = `https://api.github.com/repos/${REPO}/contents/${path}`;
+        if(!tkn) return;
+        const cont = document.getElementById(folder === 'uploads' ? 'asset-container' : 'archive-container');
+        cont.innerHTML = "<p style='font-size:0.7rem'>Loading...</p>";
         try {
-            let sha = "";
-            const ck = await fetch(url, { headers: {'Authorization': `token ${tkn}`} });
-            if(ck.ok) { const d = await ck.json(); sha = d.sha; }
-            const res = await fetch(url, {
-                method: 'PUT',
-                headers: {'Authorization': `token ${tkn}`},
-                body: JSON.stringify({
-                    message: `Action: ${path}`,
-                    content: isB64 ? content : btoa(unescape(encodeURIComponent(content))),
-                    sha: sha
-                })
+            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${folder}?t=${Date.now()}`, {
+                headers: {'Authorization': `token ${tkn}`}
             });
-            if(res.ok) { alert("SUKSES!"); switchTab(path.split('/')[0] === 'uploads' ? 'assets' : 'archive'); }
-        } catch(e) { alert(e.message); }
-        updateStatus("Ready");
+            const data = await res.json();
+            cont.innerHTML = "";
+            if(!data.length) { cont.innerHTML = "Kosong."; return; }
+            data.reverse().forEach(item => {
+                const link = `https://hamudi2012.github.io/UndanganDigital/${item.path}`;
+                let previewHtml = '';
+                
+                // Logika Preview Kecil (Thumbnail)
+                if (folder === 'uploads') {
+                    const ext = item.name.split('.').pop().toLowerCase();
+                    if(['jpg','jpeg','png','gif','webp'].includes(ext)) {
+                        previewHtml = `<img src="${link}" class="thumb-preview" onclick="window.open('${link}')">`;
+                    } else {
+                        previewHtml = `<div class="thumb-preview d-flex align-items-center justify-content-center" style="font-size:10px; color:#555">FILE</div>`;
+                    }
+                } else {
+                    previewHtml = `<div class="thumb-preview d-flex align-items-center justify-content-center" style="font-size:10px; color:var(--gold)">HTML</div>`;
+                }
+
+                cont.innerHTML += `
+                    <div class="file-card">
+                        ${previewHtml}
+                        <div class="file-content">
+                            <div class="file-info">${item.name}</div>
+                            <div class="file-actions">
+                                <button class="btn-act btn-cp" onclick="copyIt('${link}')">Link</button>
+                                <button class="btn-act btn-view" onclick="window.open('${link}')">Buka</button>
+                                <button class="btn-act btn-del" onclick="doDelete('${item.path}')">Hapus</button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        } catch(e) { cont.innerHTML = "Error."; }
     }
 
     async function doDelete(path) {
-        if(!confirm("Hapus file ini permanen?")) return;
+        if(!confirm("Hapus file?")) return;
         const tkn = localStorage.getItem('_gh_tkn_u');
         updateStatus("Deleting...");
         try {
@@ -115,59 +139,54 @@
                 headers: {'Authorization': `token ${tkn}`}
             });
             const d = await ck.json();
-            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+            await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
                 method: 'DELETE',
                 headers: {'Authorization': `token ${tkn}`},
-                body: JSON.stringify({ message: "Delete file", sha: d.sha })
+                body: JSON.stringify({ message: "Delete", sha: d.sha })
             });
-            if(res.ok) { alert("Terhapus!"); refreshList(path.split('/')[0]); }
-        } catch(e) { alert("Gagal hapus!"); }
+            refreshList(path.split('/')[0]);
+        } catch(e) { alert("Gagal!"); }
         updateStatus("Ready");
-    }
-
-    async function refreshList(folder) {
-        const tkn = localStorage.getItem('_gh_tkn_u');
-        const cont = document.getElementById(folder === 'uploads' ? 'asset-container' : 'archive-container');
-        cont.innerHTML = "<p style='font-size:0.7rem'>Loading...</p>";
-        try {
-            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${folder}`, {
-                headers: {'Authorization': `token ${tkn}`}
-            });
-            const data = await res.json();
-            cont.innerHTML = "";
-            data.reverse().forEach(item => {
-                const link = `https://hamudi2012.github.io/UndanganDigital/${item.path}`;
-                cont.innerHTML += `
-                    <div class="file-card">
-                        <div class="file-info">${item.name}</div>
-                        <div class="file-actions">
-                            <button class="btn-act btn-view" onclick="window.open('${link}')">Buka</button>
-                            <button class="btn-act btn-cp" onclick="copyIt('${link}')">Link</button>
-                            <button class="btn-act btn-del" onclick="doDelete('${item.path}')">Hapus</button>
-                        </div>
-                    </div>`;
-            });
-        } catch(e) { cont.innerHTML = "Kosong."; }
-    }
-
-    // Fungsi Upload & Build Tetap Sama (Disesuaikan)
-    async function doBuild() {
-        const tit = document.getElementById('judul').value.trim();
-        const code = document.getElementById('content').value;
-        if(!tit || !code) return alert("Lengkapi data!");
-        const slug = tit.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        await pushToGH(`skrip/${slug}.html`, code);
     }
 
     async function doUpload() {
         const file = document.getElementById('fMedia').files[0];
         if(!file) return;
+        const tkn = localStorage.getItem('_gh_tkn_u');
+        updateStatus("Uploading...");
         const reader = new FileReader();
-        reader.onload = () => pushToGH(`uploads/${Date.now()}-${file.name}`, reader.result.split(',')[1], true);
+        reader.onload = async () => {
+            const b64 = reader.result.split(',')[1];
+            const path = `uploads/${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
+            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+                method: 'PUT',
+                headers: {'Authorization': `token ${tkn}`},
+                body: JSON.stringify({ message: "Upload", content: b64 })
+            });
+            if(res.ok) { refreshList('uploads'); }
+            updateStatus("Ready");
+        };
         reader.readAsDataURL(file);
     }
 
-    function copyIt(v) { navigator.clipboard.writeText(v); alert("Copy!"); }
+    async function doBuild() {
+        const tkn = localStorage.getItem('_gh_tkn_u');
+        const tit = document.getElementById('judul').value.trim();
+        const code = document.getElementById('content').value;
+        if(!tkn || !tit || !code) return alert("Lengkapi data!");
+        updateStatus("Publishing...");
+        const slug = tit.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const path = `skrip/${slug}.html`;
+        const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+            method: 'PUT',
+            headers: {'Authorization': `token ${tkn}`},
+            body: JSON.stringify({ message: "Build", content: btoa(unescape(encodeURIComponent(code))) })
+        });
+        if(res.ok) { alert("Published!"); switchTab('archive'); }
+        updateStatus("Ready");
+    }
+
+    function copyIt(v) { navigator.clipboard.writeText(v); alert("Link Copied!"); }
     function updateStatus(m) { document.getElementById('status-bar').innerText = m.toUpperCase(); }
     function configToken() { 
         const t = prompt("Masukkan Token:"); 
@@ -175,4 +194,5 @@
     }
 </script>
 </body>
-</html>
+            </html>
+            
