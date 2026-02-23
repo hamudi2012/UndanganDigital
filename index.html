@@ -3,83 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Studio Architect - Secure Builder</title>
+    <title>Studio Architect Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #d4af37; --dark-bg: #0a0a0a; --panel: #161616; }
-        body { background-color: var(--dark-bg); font-family: sans-serif; color: #fff; padding: 15px; }
-        .editor-box { background: var(--panel); padding: 20px; border-radius: 15px; border: 1px solid #222; text-align: center; }
-        .form-control-dark { background: #000; border: 1px solid #333; color: #fff; margin-bottom: 12px; padding: 12px; width: 100%; border-radius: 8px; }
-        textarea { min-height: 350px; font-family: monospace; font-size: 11px; border-left: 3px solid var(--gold); }
+        body { background-color: var(--dark-bg); font-family: 'Montserrat', sans-serif; color: #fff; padding: 15px; }
+        .brand-header { text-align: center; margin-bottom: 20px; }
+        .brand-header h2 { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--gold); margin: 0; }
+        .nav-links { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .btn-nav { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 5px 15px; border-radius: 5px; font-size: 0.7rem; text-transform: uppercase; transition: 0.3s; }
+        .btn-nav.active { background: var(--gold); color: #000; }
+        .editor-box { background: var(--panel); padding: 20px; border-radius: 15px; border: 1px solid #222; }
+        .form-control-dark { background: #000; border: 1px solid #333; color: #fff; margin-bottom: 12px; padding: 12px; width: 100%; border-radius: 8px; font-size: 0.8rem; }
+        textarea { min-height: 300px; font-family: monospace; font-size: 11px; border-left: 3px solid var(--gold); }
         .btn-publish { background: var(--gold); color: #000; font-weight: 800; width: 100%; padding: 15px; border: none; border-radius: 8px; text-transform: uppercase; }
-        .status-msg { font-size: 0.7rem; color: #888; margin-top: 10px; }
+        .hidden { display: none; }
+        .list-item { background: #000; padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.7rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; }
+        .copy-badge { background: var(--gold); color: #000; padding: 2px 6px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="editor-box">
-    <h2 style="color:var(--gold)">STUDIO BUILDER</h2>
-    <p style="font-size:0.7rem">REPO: hamudi2012/UndanganDigital</p>
-
-    <button onclick="setToken()" class="btn btn-sm btn-outline-secondary mb-3" style="font-size:0.6rem">⚙️ SET/GANTI TOKEN</button>
-
-    <input type="text" id="judul" class="form-control-dark" placeholder="Judul Project (Contoh: wedding-mega)">
-    <textarea id="content" class="form-control-dark" placeholder="Paste HTML Undangan..."></textarea>
-    
-    <button class="btn-publish" id="btnExec" onclick="executeBuild()">Execute & Publish</button>
-    <div id="status-log" class="status-msg">Siap bekerja...</div>
+<div class="brand-header">
+    <h2>Studio</h2>
+    <p style="font-size: 0.6rem; letter-spacing: 3px; color: #555;">DIGITAL ARCHITECT PRO</p>
 </div>
+
+<div class="nav-links">
+    <button onclick="showTab('build')" id="btn-build" class="btn-nav active">Builder</button>
+    <button onclick="showTab('assets')" id="btn-assets" class="btn-nav">Assets</button>
+    <button onclick="showTab('archive')" id="btn-archive" class="btn-nav">Archive</button>
+</div>
+
+<div id="section-build" class="tab-content">
+    <div class="editor-box">
+        <button onclick="setToken()" class="btn btn-sm btn-dark mb-3" style="font-size: 0.6rem; border: 1px solid #333;">⚙️ CONFIG TOKEN</button>
+        <input type="text" id="judul" class="form-control-dark" placeholder="Project Title (Contoh: wedding-mega)">
+        <textarea id="content" class="form-control-dark" placeholder="Paste HTML Source Code..."></textarea>
+        <button class="btn-publish" onclick="executeBuild()">Publish Undangan</button>
+    </div>
+</div>
+
+<div id="section-assets" class="tab-content hidden text-center">
+    <div class="editor-box">
+        <p class="small text-warning">Upload Foto/Video ke GitHub</p>
+        <input type="file" id="fileInput" class="form-control-dark">
+        <button class="btn btn-primary w-100 mb-4" onclick="executeUpload()">Upload Now</button>
+        <hr>
+        <button onclick="loadList('uploads')" class="btn-nav mb-3">Refresh List Asset</button>
+        <div id="asset-list"></div>
+    </div>
+</div>
+
+<div id="section-archive" class="tab-content hidden text-center">
+    <div class="editor-box">
+        <p class="small text-warning">Daftar Undangan Terbit</p>
+        <button onclick="loadList('skrip')" class="btn-nav mb-3">Refresh List Undangan</button>
+        <div id="archive-list"></div>
+    </div>
+</div>
+
+<div id="status-log" class="text-center mt-3" style="font-size: 0.6rem; color: #888;">Ready.</div>
 
 <script>
     const MY_REPO = "hamudi2012/UndanganDigital";
 
-    // Fungsi buat simpan token ke memori HP lo doang
     function setToken() {
         const t = prompt("Masukkan Token ghp_ lo:");
-        if(t) {
-            localStorage.setItem('gh_token_privat', t.trim());
-            alert("Token tersimpan aman di HP lo!");
-        }
+        if(t) { localStorage.setItem('gh_token_privat', t.trim()); alert("Token Tersimpan!"); }
+    }
+
+    function showTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+        document.querySelectorAll('.btn-nav').forEach(b => b.classList.remove('active'));
+        document.getElementById('section-' + tab).classList.remove('hidden');
+        document.getElementById('btn-' + tab).classList.add('active');
     }
 
     async function executeBuild() {
         const token = localStorage.getItem('gh_token_privat');
         const title = document.getElementById('judul').value.trim();
         let source = document.getElementById('content').value;
-        const log = document.getElementById('status-log');
+        if(!token || !title) return alert("Cek Token & Judul!");
 
-        if(!token) return alert("Klik tombol SET TOKEN dulu, Bro!");
-        if(!title || !source) return alert("Judul & Kodingan harus diisi!");
-
-        log.innerText = "Processing...";
         const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         const fileName = `skrip/${slug}.html`;
-        const apiUrl = `https://api.github.com/repos/${MY_REPO}/contents/${fileName}`;
+        await pushToGithub(token, fileName, source, `Build: ${title}`);
+    }
 
+    async function executeUpload() {
+        const token = localStorage.getItem('gh_token_privat');
+        const fileInput = document.getElementById('fileInput');
+        if(!token || fileInput.files.length === 0) return alert("Pilih file dulu!");
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        reader.onload = async function() {
+            const content = reader.result.split(',')[1];
+            const fileName = `uploads/${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
+            await pushToGithub(token, fileName, content, `Upload Asset: ${file.name}`, true);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async function pushToGithub(token, path, content, msg, isBase64 = false) {
+        document.getElementById('status-log').innerText = "Pushing to GitHub...";
+        const url = `https://api.github.com/repos/${MY_REPO}/contents/${path}`;
         try {
             let sha = "";
-            const check = await fetch(apiUrl, { headers: { 'Authorization': `token ${token}` } });
+            const check = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
             if(check.ok) { const d = await check.json(); sha = d.sha; }
 
-            const res = await fetch(apiUrl, {
+            const res = await fetch(url, {
                 method: 'PUT',
-                headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+                headers: { 'Authorization': `token ${token}` },
                 body: JSON.stringify({
-                    message: `Build: ${title}`,
-                    content: btoa(unescape(encodeURIComponent(source))),
+                    message: msg,
+                    content: isBase64 ? content : btoa(unescape(encodeURIComponent(content))),
                     sha: sha
                 })
             });
-
-            if(res.ok) {
-                alert("JOSS! Link Live:\nhttps://hamudi2012.github.io/UndanganDigital/" + fileName);
-                log.innerText = "Sukses!";
-            } else {
-                const err = await res.json();
-                alert("Gagal: " + err.message);
-                if(err.message === "Bad credentials") alert("Token lo hangus! Klik SET TOKEN lagi pke yg baru.");
-            }
+            if(res.ok) { alert("SUKSES!"); loadList(path.split('/')[0]); }
+            else { alert("Gagal! Cek Token."); }
         } catch(e) { alert("Error: " + e.message); }
+        document.getElementById('status-log').innerText = "Standby.";
+    }
+
+    async function loadList(folder) {
+        const token = localStorage.getItem('gh_token_privat');
+        const container = document.getElementById(folder === 'skrip' ? 'archive-list' : 'asset-list');
+        container.innerHTML = "Loading...";
+        try {
+            const res = await fetch(`https://api.github.com/repos/${MY_REPO}/contents/${folder}`, {
+                headers: { 'Authorization': `token ${token}` }
+            });
+            const data = await res.json();
+            container.innerHTML = "";
+            data.forEach(item => {
+                const url = `https://hamudi2012.github.io/UndanganDigital/${item.path}`;
+                container.innerHTML += `
+                    <div class="list-item">
+                        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:150px;">${item.name}</span>
+                        <span class="copy-badge" onclick="copyText('${url}')">COPY URL</span>
+                    </div>`;
+            });
+        } catch(e) { container.innerHTML = "Folder masih kosong."; }
+    }
+
+    function copyText(txt) {
+        navigator.clipboard.writeText(txt);
+        alert("URL Berhasil di Copy!");
     }
 </script>
 </body>
